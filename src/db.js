@@ -97,7 +97,8 @@ export const dbGetMyProfile = async (authUserId) => {
   return row ? mapStaff(row) : null;
 };
 export const dbAcceptInvite = async (code, firstName, lastName, password) => {
-  const invited = check(await supabase.from('staff_profiles').select('*').eq('invite_code', code.trim().toUpperCase()).eq('status', 'invited').maybeSingle());
+  const matches = check(await supabase.rpc('public_invite_lookup', { p_code: code }));
+  const invited = matches && matches[0];
   if (!invited) throw new Error('That invite code is invalid or already used.');
   const { data: signUpData, error: signUpErr } = await supabase.auth.signUp({ email: invited.email, password });
   if (signUpErr) throw signUpErr;
